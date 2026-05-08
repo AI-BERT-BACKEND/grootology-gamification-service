@@ -23,7 +23,6 @@ public class GamificationService implements GamificationUseCase {
     public GamificationResponseDTO processEvent(UUID userId, ActionEventRequestDTO request) {
         GamificationProfile profile = repository.findByUserId(userId)
                 .orElse(GamificationProfile.builder()
-                        .id(UUID.randomUUID())
                         .userId(userId)
                         .totalPoints(0)
                         .currentStreak(0)
