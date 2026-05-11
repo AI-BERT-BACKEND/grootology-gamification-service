@@ -209,6 +209,9 @@ jobs:
           resourceGroup: aibert-rg
           containerAppName: aibert-gamification-service-qa
           imageToDeploy: ghcr.io/ai-bert-backend/grootology-gamification-service:qa-latest
+          registryUrl: ghcr.io
+          registryUsername: ${{ github.actor }}
+          registryPassword: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-prod:
     name: Deploy to PROD
@@ -231,3 +234,6 @@ jobs:
           resourceGroup: aibert-rg
           containerAppName: aibert-gamification-service-prod
           imageToDeploy: ghcr.io/ai-bert-backend/grootology-gamification-service:prod-latest
+          registryUrl: ghcr.io
+          registryUsername: ${{ github.actor }}
+          registryPassword: ${{ secrets.GITHUB_TOKEN }}
