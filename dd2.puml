@@ -1,0 +1,108 @@
+@startuml
+title Gamification Service – Diagrama de Clases
+
+skinparam linetype ortho
+skinparam ArrowThickness 1.4
+skinparam ArrowFontSize 11
+skinparam PackagePadding 20
+skinparam ClassPadding 15
+
+' =======================
+' Domain
+' =======================
+package "Domain" {
+
+  class GamificationProfile {
+    - userId: UUID
+    - level: Level
+    - currentStreak: Integer
+    - badges: List<Badge>
+  }
+
+  enum ActionEvent {
+    TASK_COMPLETED_ON_TIME,
+    TASK_COMPLETED_LATE,
+    STREAK_MAINTAINED,
+    WEEKLY_GOAL_MET
+  }
+
+  enum Badge {
+    PRIMERA_TAREA,
+    RACHA_7_DIAS,
+    RACHA_30_DIAS,
+    META_SEMANAL,
+    MAESTRO_PUNTUALIDAD
+  }
+
+  enum Level {
+    NOVATO
+    CONSTANTE
+    COMPROMETIDO
+    AVANZADO
+    MAESTRO_DEL_TIEMPO
+  }
+
+  class GamificationProfileNotFoundException
+}
+
+' =======================
+' Entrypoints
+' =======================
+package "Entrypoints" {
+
+  class GamificationController {
+    + processEvent(dto): GamificationResponseDTO
+    + getProgress(userId): GamificationResponseDTO
+  }
+}
+
+' =======================
+' Application (Use Cases)
+' =======================
+package "Application (Use Cases)" {
+
+  interface GamificationUseCase {
+    + processEvent(userId, event): GamificationProfile
+    + getProgress(userId): GamificationProfile
+  }
+}
+
+' =======================
+' Ports (OUT)
+' =======================
+package "Ports (OUT)" {
+
+  interface GamificationRepositoryPort {
+    + findByUserId(userId): GamificationProfile
+    + save(profile): GamificationProfile
+  }
+}
+
+' =======================
+' Infrastructure
+' =======================
+package "Infrastructure" {
+
+  class GamificationRepositoryAdapter
+  interface GamificationJpaRepository
+  class GamificationPersistenceMapper
+}
+
+' =======================
+' Relations – Entrypoints → Application
+' =======================
+GamificationController --> GamificationUseCase : usa
+
+' =======================
+' Relations – Application → Ports
+' =======================
+GamificationUseCase --> GamificationRepositoryPort : opera con
+
+' =======================
+' Relations – Infrastructure (sin labels para limpieza)
+' =======================
+GamificationRepositoryAdapter --> GamificationRepositoryPort
+GamificationRepositoryAdapter --> GamificationJpaRepository
+GamificationRepositoryAdapter --> GamificationPersistenceMapper
+
+@enduml
