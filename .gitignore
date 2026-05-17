@@ -168,7 +168,7 @@ buildNumber.properties
 
 #### ENVIRONMENT VARIABLES ####
 .env
-.env.*
+.env
 .env.local
 .env.development.local
 .env.test.local
