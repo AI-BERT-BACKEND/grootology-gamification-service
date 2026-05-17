@@ -57,12 +57,14 @@ public interface AchievementApplicationMapper {
   }
 
   default AchievementResponseDTO toUnlockResponse(
+      String username,
       boolean unlocked,
       AchievementDefinition definition,
       List<AchievementGalleryItemDTO> gallery,
       List<AchievementGalleryItemDTO> recent,
       String message) {
     return AchievementResponseDTO.builder()
+        .username(username)
         .achievementUnlocked(unlocked)
         .achievementBadge(toBadgeDto(definition))
         .achievementGallery(gallery)

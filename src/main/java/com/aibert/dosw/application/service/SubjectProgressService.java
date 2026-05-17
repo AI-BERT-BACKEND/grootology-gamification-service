@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -41,6 +43,7 @@ public class SubjectProgressService implements SubjectProgressUseCase {
       }
 
       GamificationProfile profile = resolveProfile(userId);
+      String username = resolveUsername(profile, userId);
       List<SubjectProgressItemDTO> items = new ArrayList<>();
 
       for (SubjectProgressDataDTO subjectData : request.getSubjects()) {
@@ -52,6 +55,7 @@ public class SubjectProgressService implements SubjectProgressUseCase {
       }
 
       return SubjectProgressOverviewDTO.builder()
+          .username(username)
           .userGlobalLevel(GlobalLevelCalculator.fromTotalXp(profile.getTotalPoints()))
           .totalGlobalXp(profile.getTotalPoints())
           .subjects(items)
@@ -73,7 +77,9 @@ public class SubjectProgressService implements SubjectProgressUseCase {
       }
 
       GamificationProfile profile = resolveProfile(userId);
+      String username = resolveUsername(profile, userId);
       return SubjectProgressOverviewDTO.builder()
+          .username(username)
           .userGlobalLevel(profile.getGlobalLevel())
           .totalGlobalXp(profile.getTotalPoints())
           .subjects(snapshots.stream().map(subjectProgressMapper::snapshotToItem).toList())
@@ -108,6 +114,7 @@ public class SubjectProgressService implements SubjectProgressUseCase {
         .orElse(
             GamificationProfile.builder()
                 .userId(userId)
+                .username(resolveUsername(null, userId))
                 .totalPoints(0)
                 .currentStreak(0)
                 .globalLevel(Level.NOVATO)
@@ -127,5 +134,21 @@ public class SubjectProgressService implements SubjectProgressUseCase {
         .progressVisualization(result.getProgressVisualization())
         .partialData(result.isPartialData())
         .build();
+  }
+
+  private String resolveUsername(GamificationProfile profile, UUID userId) {
+    if (profile != null && profile.getUsername() != null && !profile.getUsername().isBlank()) {
+      return profile.getUsername();
+    }
+
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null) {
+      String principal = String.valueOf(authentication.getPrincipal());
+      if (!principal.isBlank() && !"anonymousUser".equalsIgnoreCase(principal)) {
+        return principal;
+      }
+    }
+
+    return userId.toString();
   }
 }

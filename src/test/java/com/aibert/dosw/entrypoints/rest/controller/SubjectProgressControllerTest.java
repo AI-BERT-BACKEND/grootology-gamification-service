@@ -32,6 +32,7 @@ class SubjectProgressControllerTest {
     when(subjectProgressUseCase.getProgressOverview(userId))
         .thenReturn(
             SubjectProgressOverviewDTO.builder()
+                .username("student.controller")
                 .userGlobalLevel(Level.NOVATO)
                 .totalGlobalXp(0)
                 .subjects(List.of())

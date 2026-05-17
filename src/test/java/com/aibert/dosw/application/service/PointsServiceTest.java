@@ -69,6 +69,7 @@ class PointsServiceTest {
         GamificationProfile.builder()
             .id(UUID.randomUUID())
             .userId(userId)
+            .username("student.points")
             .totalPoints(40)
             .currentStreak(2)
             .globalLevel(Level.NOVATO)
@@ -94,6 +95,7 @@ class PointsServiceTest {
     GamificationProfile profile =
         GamificationProfile.builder()
             .userId(userId)
+            .username("student.points")
             .totalPoints(120)
             .currentStreak(4)
             .globalLevel(Level.CONSTANTE)

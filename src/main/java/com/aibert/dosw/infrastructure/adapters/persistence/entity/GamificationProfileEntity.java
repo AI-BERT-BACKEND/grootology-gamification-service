@@ -23,6 +23,9 @@ public class GamificationProfileEntity {
   @Column(nullable = false, unique = true)
   private UUID userId;
 
+  @Column
+  private String username;
+
   @Column(nullable = false)
   private int totalPoints;
 

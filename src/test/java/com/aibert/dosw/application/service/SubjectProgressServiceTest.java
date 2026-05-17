@@ -48,6 +48,7 @@ class SubjectProgressServiceTest {
     SubjectProgressOverviewDTO response =
         subjectProgressService.updateProgress(userId, buildBatch());
 
+    assertEquals(userId.toString(), response.getUsername());
     assertEquals(1, response.getSubjects().size());
     verify(subjectProgressRepository).save(any());
   }
@@ -77,6 +78,7 @@ class SubjectProgressServiceTest {
             Optional.of(
                 GamificationProfile.builder()
                     .userId(userId)
+                    .username("student.progress")
                     .totalPoints(200)
                     .globalLevel(Level.COMPROMETIDO)
                     .achievements(new ArrayList<>())
@@ -84,6 +86,7 @@ class SubjectProgressServiceTest {
 
     SubjectProgressOverviewDTO response = subjectProgressService.getProgressOverview(userId);
 
+    assertEquals("student.progress", response.getUsername());
     assertEquals(Level.COMPROMETIDO, response.getUserGlobalLevel());
     assertEquals("math-101", response.getSubjects().getFirst().getSubjectId());
   }

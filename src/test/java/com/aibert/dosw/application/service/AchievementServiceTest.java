@@ -48,6 +48,7 @@ class AchievementServiceTest {
         achievementService.unlockAchievement(userId, buildRequest(AchievementEvent.PERFECT_SCORE, 100));
 
     assertTrue(response.isAchievementUnlocked());
+    assertEquals(userId.toString(), response.getUsername());
     assertNotNull(response.getAchievementBadge());
     assertEquals(5, response.getAchievementGallery().size());
     verify(repository).save(any());
@@ -58,6 +59,7 @@ class AchievementServiceTest {
     GamificationProfile profile =
         GamificationProfile.builder()
             .userId(userId)
+            .username("student.test")
             .totalPoints(50)
             .currentStreak(2)
             .globalLevel(Level.NOVATO)
@@ -75,6 +77,7 @@ class AchievementServiceTest {
         achievementService.unlockAchievement(userId, buildRequest(AchievementEvent.PERFECT_SCORE, 100));
 
     assertFalse(response.isAchievementUnlocked());
+    assertEquals("student.test", response.getUsername());
     verify(repository, never()).save(any());
   }
 

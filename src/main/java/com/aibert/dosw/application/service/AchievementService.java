@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -33,6 +35,7 @@ public class AchievementService implements AchievementUseCase {
   public AchievementResponseDTO unlockAchievement(UUID userId, AchievementUnlockRequestDTO request) {
     try {
       GamificationProfile profile = loadOrCreateProfile(userId);
+      String username = resolveUsername(profile, userId);
       List<UnlockedAchievement> current =
           profile.getAchievements() != null ? profile.getAchievements() : new ArrayList<>();
 
@@ -51,13 +54,14 @@ public class AchievementService implements AchievementUseCase {
 
       if (!result.isAchievementUnlocked()) {
         return achievementMapper.toUnlockResponse(
-            false, result.getUnlockedDefinition(), gallery, recent, result.getMessage());
+            username, false, result.getUnlockedDefinition(), gallery, recent, result.getMessage());
       }
 
       repository.save(
           GamificationProfile.builder()
               .id(profile.getId())
               .userId(userId)
+              .username(username)
               .totalPoints(profile.getTotalPoints())
               .currentStreak(profile.getCurrentStreak())
               .lastActivityDate(profile.getLastActivityDate())
@@ -67,6 +71,7 @@ public class AchievementService implements AchievementUseCase {
 
       AchievementDefinition unlocked = result.getUnlockedDefinition();
       return achievementMapper.toUnlockResponse(
+          username,
           true,
           unlocked,
           gallery,
@@ -84,11 +89,13 @@ public class AchievementService implements AchievementUseCase {
   public AchievementResponseDTO getGallery(UUID userId) {
     GamificationProfile profile =
         repository.findByUserId(userId).orElseThrow(GamificationProfileNotFoundException::new);
+    String username = resolveUsername(profile, userId);
 
     List<UnlockedAchievement> achievements =
         profile.getAchievements() != null ? profile.getAchievements() : List.of();
 
     return achievementMapper.toUnlockResponse(
+        username,
         false,
         null,
         achievementMapper.toGalleryDto(achievementProcessor.buildGallery(achievements)),
@@ -102,10 +109,27 @@ public class AchievementService implements AchievementUseCase {
         .orElse(
             GamificationProfile.builder()
                 .userId(userId)
+                .username(resolveUsername(null, userId))
                 .totalPoints(0)
                 .currentStreak(0)
                 .globalLevel(Level.NOVATO)
                 .achievements(new ArrayList<>())
                 .build());
+  }
+
+  private String resolveUsername(GamificationProfile profile, UUID userId) {
+    if (profile != null && profile.getUsername() != null && !profile.getUsername().isBlank()) {
+      return profile.getUsername();
+    }
+
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null) {
+      String principal = String.valueOf(authentication.getPrincipal());
+      if (!principal.isBlank() && !"anonymousUser".equalsIgnoreCase(principal)) {
+        return principal;
+      }
+    }
+
+    return userId.toString();
   }
 }

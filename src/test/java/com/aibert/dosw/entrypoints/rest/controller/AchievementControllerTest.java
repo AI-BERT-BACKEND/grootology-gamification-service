@@ -31,6 +31,7 @@ class AchievementControllerTest {
     when(achievementUseCase.getGallery(userId))
         .thenReturn(
             AchievementResponseDTO.builder()
+                .username("student.controller")
                 .achievementUnlocked(false)
                 .achievementGallery(List.of())
                 .recentAchievements(List.of())

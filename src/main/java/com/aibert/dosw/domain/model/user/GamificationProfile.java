@@ -13,6 +13,7 @@ import java.util.UUID;
 public class GamificationProfile {
   private UUID id;
   private UUID userId;
+  private String username;
   private int totalPoints;
   private int currentStreak;
   private LocalDate lastActivityDate;

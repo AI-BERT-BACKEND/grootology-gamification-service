@@ -9,6 +9,9 @@ import lombok.Getter;
 @Builder
 @Schema(description = "AIB-37 Achievement System response")
 public class AchievementResponseDTO {
+  @Schema(description = "Visible student username associated with this achievement data")
+  private final String username;
+
   @Schema(description = "Whether the achievement was unlocked in this request")
   private final boolean achievementUnlocked;
 

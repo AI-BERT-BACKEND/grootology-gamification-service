@@ -15,6 +15,8 @@ import com.aibert.dosw.domain.service.PointsSystemProcessor;
 import java.util.ArrayList;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -30,6 +32,7 @@ public class PointsService implements PointsUseCase {
   public PointsResponseDTO processAcademicEvent(UUID userId, ActionEventRequestDTO request) {
     try {
       GamificationProfile profile = loadOrCreateProfile(userId);
+      String username = resolveUsername(profile, userId);
 
       PointsSystemProcessor.PointsAwardResult award =
           pointsProcessor.process(
@@ -48,6 +51,7 @@ public class PointsService implements PointsUseCase {
           GamificationProfile.builder()
               .id(profile.getId())
               .userId(userId)
+              .username(username)
               .totalPoints(award.getTotalPoints())
               .currentStreak(award.getCurrentStreak())
               .lastActivityDate(award.getLastActivityDate())
@@ -81,10 +85,27 @@ public class PointsService implements PointsUseCase {
         .orElse(
             GamificationProfile.builder()
                 .userId(userId)
+                .username(resolveUsername(null, userId))
                 .totalPoints(0)
                 .currentStreak(0)
                 .globalLevel(Level.NOVATO)
                 .achievements(new ArrayList<>())
                 .build());
+  }
+
+  private String resolveUsername(GamificationProfile profile, UUID userId) {
+    if (profile != null && profile.getUsername() != null && !profile.getUsername().isBlank()) {
+      return profile.getUsername();
+    }
+
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication != null) {
+      String principal = String.valueOf(authentication.getPrincipal());
+      if (!principal.isBlank() && !"anonymousUser".equalsIgnoreCase(principal)) {
+        return principal;
+      }
+    }
+
+    return userId.toString();
   }
 }

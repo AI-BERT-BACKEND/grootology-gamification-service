@@ -32,6 +32,7 @@ class GamificationRepositoryAdapterTest {
     GamificationProfile profile =
         GamificationProfile.builder()
             .userId(UUID.randomUUID())
+            .username("student.repo")
             .totalPoints(10)
             .currentStreak(1)
             .globalLevel(Level.NOVATO)
@@ -52,6 +53,7 @@ class GamificationRepositoryAdapterTest {
     GamificationProfileEntity entity =
         GamificationProfileEntity.builder()
             .userId(userId)
+            .username("student.repo")
             .totalPoints(80)
             .currentStreak(2)
             .globalLevel(Level.CONSTANTE)
