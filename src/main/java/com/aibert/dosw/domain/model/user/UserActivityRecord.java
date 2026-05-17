@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Builder
@@ -11,5 +12,5 @@ public class UserActivityRecord {
     private ActionEvent actionEvent;
     private LocalDateTime completionDate;
     private LocalDateTime dueDate;
-    private String activityId;
+    private UUID activityId;
 }

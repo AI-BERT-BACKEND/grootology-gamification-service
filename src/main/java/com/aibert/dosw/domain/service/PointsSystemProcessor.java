@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Lógica de negocio del Sistema de Puntos (AIB-36).
@@ -25,7 +26,7 @@ public class PointsSystemProcessor {
             ActionEvent actionEvent,
             LocalDateTime completionDate,
             LocalDateTime dueDate,
-            String activityId,
+            UUID activityId,
             List<UserActivityRecord> userActivityHistory) {
 
         if (!isValidRequest(actionEvent, completionDate, userActivityHistory)) {
@@ -71,21 +72,16 @@ public class PointsSystemProcessor {
     private boolean isDuplicateEvent(
             ActionEvent actionEvent,
             LocalDateTime completionDate,
-            String activityId,
+            UUID activityId,
             List<UserActivityRecord> history) {
-        LocalDate eventDay = completionDate.toLocalDate();
-        return history.stream().anyMatch(record ->
-                record.getActionEvent() == actionEvent
-                        && record.getCompletionDate() != null
-                        && record.getCompletionDate().toLocalDate().equals(eventDay)
-                        && matchesActivityId(record.getActivityId(), activityId));
-    }
-
-    private boolean matchesActivityId(String existingId, String incomingId) {
-        if (existingId == null || incomingId == null) {
-            return existingId == null && incomingId == null;
+        if (activityId != null) {
+            return history.stream().anyMatch(record -> activityId.equals(record.getActivityId()));
         }
-        return existingId.equals(incomingId);
+        return history.stream().anyMatch(record ->
+                record.getActivityId() == null
+                        && record.getActionEvent() == actionEvent
+                        && record.getCompletionDate() != null
+                        && record.getCompletionDate().equals(completionDate));
     }
 
     private int resolveStreak(GamificationProfile profile, LocalDateTime completionDate) {

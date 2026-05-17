@@ -15,6 +15,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 class GlobalExceptionHandlerTest {
 
@@ -84,5 +86,29 @@ class GlobalExceptionHandlerTest {
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     assertEquals("GAM-503", response.getBody().getCode());
+  }
+
+  @Test
+  void handleUnreadable_returns400() {
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getRequestURI()).thenReturn("/api/v1/gamification/1/points/events");
+
+    ResponseEntity<ApiErrorResponseDTO> response =
+        handler.handleUnreadable(new HttpMessageNotReadableException("invalid"), request);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("GAM-400", response.getBody().getCode());
+  }
+
+  @Test
+  void handleTypeMismatch_returns400() {
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getRequestURI()).thenReturn("/api/v1/gamification/not-uuid/points");
+
+    ResponseEntity<ApiErrorResponseDTO> response =
+        handler.handleTypeMismatch(mock(MethodArgumentTypeMismatchException.class), request);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("GAM-400", response.getBody().getCode());
   }
 }

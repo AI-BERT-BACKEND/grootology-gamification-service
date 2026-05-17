@@ -9,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import java.time.Instant;
 
@@ -30,6 +32,24 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ApiErrorResponseDTO> handleGamification(
       GamificationException ex, HttpServletRequest request) {
     return buildResponse(ex.getErrorCode(), ex.getMessage(), request.getRequestURI());
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<ApiErrorResponseDTO> handleUnreadable(
+      HttpMessageNotReadableException ex, HttpServletRequest request) {
+    return buildResponse(
+        ErrorCode.VALIDATION_ERROR,
+        ErrorCode.VALIDATION_ERROR.getDefaultMessage(),
+        request.getRequestURI());
+  }
+
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<ApiErrorResponseDTO> handleTypeMismatch(
+      MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
+    return buildResponse(
+        ErrorCode.VALIDATION_ERROR,
+        ErrorCode.VALIDATION_ERROR.getDefaultMessage(),
+        request.getRequestURI());
   }
 
   @ExceptionHandler(Exception.class)

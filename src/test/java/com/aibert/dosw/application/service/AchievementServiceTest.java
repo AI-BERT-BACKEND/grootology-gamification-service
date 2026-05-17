@@ -27,6 +27,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
 class AchievementServiceTest {
@@ -85,6 +87,31 @@ class AchievementServiceTest {
   void getGallery_profileNotFound() {
     when(repository.findByUserId(userId)).thenReturn(Optional.empty());
     assertThrows(GamificationProfileNotFoundException.class, () -> achievementService.getGallery(userId));
+  }
+
+  @Test
+  void getGallery_usesAuthenticatedPrincipalWhenProfileUsernameMissing() {
+    SecurityContextHolder.getContext()
+        .setAuthentication(
+            new UsernamePasswordAuthenticationToken("student.auth@aibert.edu", null, List.of()));
+    try {
+      when(repository.findByUserId(userId))
+          .thenReturn(
+              Optional.of(
+                  GamificationProfile.builder()
+                      .userId(userId)
+                      .totalPoints(0)
+                      .currentStreak(0)
+                      .globalLevel(Level.NOVATO)
+                      .achievements(new ArrayList<>())
+                      .build()));
+
+      AchievementResponseDTO response = achievementService.getGallery(userId);
+
+      assertEquals("student.auth@aibert.edu", response.getUsername());
+    } finally {
+      SecurityContextHolder.clearContext();
+    }
   }
 
   private AchievementUnlockRequestDTO buildRequest(AchievementEvent event, int score) {

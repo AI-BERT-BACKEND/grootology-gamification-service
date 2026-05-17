@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -20,5 +21,5 @@ public class ActivityRecordDTO {
   private Integer score;
   private Integer progressPercent;
   private Integer streakDays;
-  private String subjectId;
+  private UUID subjectId;
 }

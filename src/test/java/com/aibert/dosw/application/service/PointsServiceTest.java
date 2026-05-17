@@ -26,6 +26,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
 class PointsServiceTest {
@@ -43,7 +45,8 @@ class PointsServiceTest {
     when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
     PointsResponseDTO response =
-        pointsService.processAcademicEvent(userId, buildRequest(ActionEvent.TASK_COMPLETED, "task-1"));
+        pointsService.processAcademicEvent(
+            userId, buildRequest(ActionEvent.TASK_COMPLETED, UUID.randomUUID()));
 
     assertTrue(response.isPointsUpdated());
     assertEquals(15, response.getXpEarned());
@@ -57,12 +60,13 @@ class PointsServiceTest {
     UserActivityRecordDTO existing = new UserActivityRecordDTO();
     existing.setActionEvent(ActionEvent.TASK_COMPLETED);
     existing.setCompletionDate(completion);
-    existing.setActivityId("task-dup");
+    UUID duplicateActivityId = UUID.randomUUID();
+    existing.setActivityId(duplicateActivityId);
 
     ActionEventRequestDTO request = new ActionEventRequestDTO();
     request.setActionEvent(ActionEvent.TASK_COMPLETED);
     request.setCompletionDate(completion);
-    request.setActivityId("task-dup");
+    request.setActivityId(duplicateActivityId);
     request.setUserActivityHistory(List.of(existing));
 
     GamificationProfile profile =
@@ -110,7 +114,27 @@ class PointsServiceTest {
     assertFalse(response.isPointsUpdated());
   }
 
-  private ActionEventRequestDTO buildRequest(ActionEvent event, String activityId) {
+  @Test
+  void processAcademicEvent_usesAuthenticatedPrincipalWhenProfileUsernameMissing() {
+    SecurityContextHolder.getContext()
+        .setAuthentication(new UsernamePasswordAuthenticationToken("student.auth", null, List.of()));
+    try {
+      when(repository.findByUserId(userId)).thenReturn(Optional.empty());
+      when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+      pointsService.processAcademicEvent(
+          userId, buildRequest(ActionEvent.TASK_COMPLETED, UUID.randomUUID()));
+
+      org.mockito.ArgumentCaptor<GamificationProfile> captor =
+          org.mockito.ArgumentCaptor.forClass(GamificationProfile.class);
+      verify(repository).save(captor.capture());
+      assertEquals("student.auth", captor.getValue().getUsername());
+    } finally {
+      SecurityContextHolder.clearContext();
+    }
+  }
+
+  private ActionEventRequestDTO buildRequest(ActionEvent event, UUID activityId) {
     LocalDateTime completion = LocalDateTime.of(2026, 5, 17, 10, 0);
     UserActivityRecordDTO history = new UserActivityRecordDTO();
     history.setActionEvent(ActionEvent.SUBJECT_PROGRESS);

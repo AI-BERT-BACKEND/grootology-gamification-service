@@ -12,7 +12,7 @@ import lombok.Getter;
 public class SubjectProgressOverviewDTO {
 
   @Schema(description = "Visible student username for the academic progress profile")
-  private final String username;
+  private final String userName;
 
   @Schema(description = "Student global gamification level across AIBERT")
   private final Level userGlobalLevel;

@@ -61,7 +61,7 @@ class SubjectProgressProcessorTest {
                 .academicPerformance(100f)
                 .build());
 
-    assertEquals("COMPLETADO", result.getProgressVisualization().getAcademicStatus());
+    assertEquals("COMPLETED", result.getProgressVisualization().getAcademicStatus());
     assertEquals("green", result.getProgressVisualization().getStatusColor());
   }
 

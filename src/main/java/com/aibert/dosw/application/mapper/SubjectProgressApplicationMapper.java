@@ -26,6 +26,9 @@ public interface SubjectProgressApplicationMapper {
   SubjectProgressItemDTO toItemDto(SubjectProgressSnapshot snapshot);
 
   @Mapping(target = "progressVisualization", source = "progressVisualization")
-  @Mapping(target = "message", ignore = true)
+  @Mapping(
+      target = "message",
+      expression =
+          "java(snapshot.isPartialData() ? \"Partial progress: insufficient academic activity (FA-02).\" : null)")
   SubjectProgressItemDTO snapshotToItem(SubjectProgressSnapshot snapshot);
 }

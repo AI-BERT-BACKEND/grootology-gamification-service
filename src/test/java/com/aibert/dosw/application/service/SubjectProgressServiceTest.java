@@ -28,6 +28,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
 class SubjectProgressServiceTest {
@@ -48,7 +50,7 @@ class SubjectProgressServiceTest {
     SubjectProgressOverviewDTO response =
         subjectProgressService.updateProgress(userId, buildBatch());
 
-    assertEquals(userId.toString(), response.getUsername());
+    assertEquals(userId.toString(), response.getUserName());
     assertEquals(1, response.getSubjects().size());
     verify(subjectProgressRepository).save(any());
   }
@@ -86,9 +88,36 @@ class SubjectProgressServiceTest {
 
     SubjectProgressOverviewDTO response = subjectProgressService.getProgressOverview(userId);
 
-    assertEquals("student.progress", response.getUsername());
+    assertEquals("student.progress", response.getUserName());
     assertEquals(Level.COMPROMETIDO, response.getUserGlobalLevel());
     assertEquals("math-101", response.getSubjects().getFirst().getSubjectId());
+  }
+
+  @Test
+  void updateProgress_usesAuthenticatedPrincipalWhenProfileUsernameMissing() {
+    SecurityContextHolder.getContext()
+        .setAuthentication(new UsernamePasswordAuthenticationToken("student.auth", null, List.of()));
+    try {
+      when(gamificationRepository.findByUserId(userId)).thenReturn(Optional.empty());
+      when(subjectProgressRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+      SubjectProgressOverviewDTO response = subjectProgressService.updateProgress(userId, buildBatch());
+
+      assertEquals("student.auth", response.getUserName());
+    } finally {
+      SecurityContextHolder.clearContext();
+    }
+  }
+
+  @Test
+  void getSubjectProgress_returnsSnapshot() {
+    when(subjectProgressRepository.findByUserIdAndSubjectId(userId, "math-101"))
+        .thenReturn(Optional.of(sampleSnapshot()));
+
+    var item = subjectProgressService.getSubjectProgress(userId, "math-101");
+
+    assertEquals("math-101", item.getSubjectId());
+    assertEquals("Mathematics", item.getSubjectName());
   }
 
   private SubjectProgressSnapshot sampleSnapshot() {

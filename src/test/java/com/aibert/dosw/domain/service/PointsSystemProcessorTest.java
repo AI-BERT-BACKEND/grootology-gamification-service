@@ -44,7 +44,7 @@ class PointsSystemProcessorTest {
             ActionEvent.TASK_COMPLETED,
             completion,
             due,
-            "task-1",
+            UUID.randomUUID(),
             List.of(pastRecord(ActionEvent.SUBJECT_PROGRESS, completion.minusDays(1))));
 
     assertTrue(result.isPointsUpdated());
@@ -64,7 +64,7 @@ class PointsSystemProcessorTest {
             ActionEvent.TASK_COMPLETED,
             completion,
             due,
-            "task-late",
+            UUID.randomUUID(),
             List.of(pastRecord(ActionEvent.SUBJECT_PROGRESS, completion.minusDays(1))));
 
     assertTrue(result.isPointsUpdated());
@@ -78,8 +78,9 @@ class PointsSystemProcessorTest {
         UserActivityRecord.builder()
             .actionEvent(ActionEvent.TASK_COMPLETED)
             .completionDate(completion)
-            .activityId("task-1")
+            .activityId(UUID.randomUUID())
             .build();
+    UUID duplicateId = duplicate.getActivityId();
 
     var result =
         processor.process(
@@ -87,7 +88,7 @@ class PointsSystemProcessorTest {
             ActionEvent.TASK_COMPLETED,
             completion,
             null,
-            "task-1",
+            duplicateId,
             List.of(duplicate));
 
     assertFalse(result.isPointsUpdated());
@@ -103,7 +104,7 @@ class PointsSystemProcessorTest {
             ActionEvent.TASK_COMPLETED,
             LocalDateTime.now(),
             null,
-            "task-1",
+            UUID.randomUUID(),
             List.of());
 
     assertFalse(result.isPointsUpdated());
@@ -129,7 +130,7 @@ class PointsSystemProcessorTest {
             ActionEvent.TASK_COMPLETED,
             completion,
             completion.plusHours(8),
-            "task-after-gap",
+            UUID.randomUUID(),
             List.of(pastRecord(ActionEvent.SUBJECT_PROGRESS, completion.minusDays(20))));
 
     assertTrue(result.isPointsUpdated());
@@ -146,7 +147,7 @@ class PointsSystemProcessorTest {
             ActionEvent.WEEKLY_GOAL_COMPLETED,
             completion,
             null,
-            "goal-1",
+            UUID.randomUUID(),
             List.of(pastRecord(ActionEvent.TASK_COMPLETED, completion.minusDays(1))));
 
     var streak =
@@ -155,7 +156,7 @@ class PointsSystemProcessorTest {
             ActionEvent.STREAK_COMPLETED,
             completion,
             null,
-            "streak-1",
+            UUID.randomUUID(),
             List.of(pastRecord(ActionEvent.TASK_COMPLETED, completion.minusDays(1))));
 
     assertEquals(25, weekly.getXpEarned());
@@ -171,7 +172,7 @@ class PointsSystemProcessorTest {
             ActionEvent.WEEKLY_GOAL_COMPLETED,
             completion,
             null,
-            "goal-1",
+            UUID.randomUUID(),
             List.of(pastRecord(ActionEvent.TASK_COMPLETED, completion.minusDays(2))));
 
     assertEquals(25, result.getXpEarned());
@@ -187,10 +188,53 @@ class PointsSystemProcessorTest {
             ActionEvent.STREAK_COMPLETED,
             completion,
             null,
-            "streak-1",
+            UUID.randomUUID(),
             List.of(pastRecord(ActionEvent.TASK_COMPLETED, completion.minusDays(1))));
 
     assertEquals(20, result.getXpEarned());
+  }
+
+  @Test
+  void process_duplicateWithoutActivityId_sameEventAndTimestamp_rejected() {
+    LocalDateTime completion = LocalDateTime.of(2026, 5, 17, 18, 0);
+    UserActivityRecord duplicate =
+        UserActivityRecord.builder()
+            .actionEvent(ActionEvent.SUBJECT_PROGRESS)
+            .completionDate(completion)
+            .build();
+
+    var result =
+        processor.process(
+            profile, ActionEvent.SUBJECT_PROGRESS, completion, null, null, List.of(duplicate));
+
+    assertFalse(result.isPointsUpdated());
+    assertTrue(result.getMessage().contains("FA-04"));
+  }
+
+  @Test
+  void process_consecutiveDay_incrementsExistingStreak() {
+    profile =
+        GamificationProfile.builder()
+            .userId(UUID.randomUUID())
+            .totalPoints(30)
+            .currentStreak(2)
+            .lastActivityDate(LocalDate.of(2026, 5, 16))
+            .globalLevel(Level.CONSTANTE)
+            .achievements(new ArrayList<>())
+            .build();
+
+    LocalDateTime completion = LocalDateTime.of(2026, 5, 17, 10, 0);
+    var result =
+        processor.process(
+            profile,
+            ActionEvent.TASK_COMPLETED,
+            completion,
+            completion.plusHours(8),
+            UUID.randomUUID(),
+            List.of(pastRecord(ActionEvent.SUBJECT_PROGRESS, completion.minusDays(1))));
+
+    assertTrue(result.isPointsUpdated());
+    assertEquals(3, result.getCurrentStreak());
   }
 
   private UserActivityRecord pastRecord(ActionEvent event, LocalDateTime date) {

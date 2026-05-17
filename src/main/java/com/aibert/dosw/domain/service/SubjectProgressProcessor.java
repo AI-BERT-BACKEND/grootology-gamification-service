@@ -135,32 +135,32 @@ public class SubjectProgressProcessor {
         .xpDisplay(xpEarned)
         .academicStatus(status)
         .statusColor(resolveStatusColor(status))
-        .tasksCompletedLabel(completedCount + "/" + totalTasks + " tareas")
+        .tasksCompletedLabel(completedCount + "/" + totalTasks + " tasks")
         .build();
   }
 
   private String resolveAcademicStatus(float percentage, boolean partialData) {
     if (partialData && percentage < 25f) {
-      return "SIN_ACTIVIDAD";
+      return "NO_ACTIVITY";
     }
     if (percentage >= 100f) {
-      return "COMPLETADO";
+      return "COMPLETED";
     }
     if (percentage >= 75f) {
-      return "AVANZADO";
+      return "ADVANCED";
     }
     if (percentage >= 40f) {
-      return "EN_PROGRESO";
+      return "IN_PROGRESS";
     }
-    return "INICIAL";
+    return "INITIAL";
   }
 
   private String resolveStatusColor(String status) {
     return switch (status) {
-      case "COMPLETADO" -> "green";
-      case "AVANZADO" -> "blue";
-      case "EN_PROGRESO" -> "orange";
-      case "SIN_ACTIVIDAD" -> "gray";
+      case "COMPLETED" -> "green";
+      case "ADVANCED" -> "blue";
+      case "IN_PROGRESS" -> "orange";
+      case "NO_ACTIVITY" -> "gray";
       default -> "yellow";
     };
   }
@@ -179,9 +179,9 @@ public class SubjectProgressProcessor {
             ProgressVisualization.builder()
                 .progressBarPercent(0f)
                 .xpDisplay(0)
-                .academicStatus("NO_DISPONIBLE")
+                .academicStatus("UNAVAILABLE")
                 .statusColor("gray")
-                .tasksCompletedLabel("0/0 tareas")
+                .tasksCompletedLabel("0/0 tasks")
                 .build())
         .partialData(true)
         .valid(false)

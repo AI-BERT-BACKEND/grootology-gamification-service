@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @Builder
@@ -13,5 +14,5 @@ public class UserProgressRecord {
   private Integer score;
   private Integer progressPercent;
   private Integer streakDays;
-  private String subjectId;
+  private UUID subjectId;
 }

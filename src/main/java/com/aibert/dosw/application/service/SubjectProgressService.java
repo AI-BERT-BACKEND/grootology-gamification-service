@@ -55,7 +55,7 @@ public class SubjectProgressService implements SubjectProgressUseCase {
       }
 
       return SubjectProgressOverviewDTO.builder()
-          .username(username)
+          .userName(username)
           .userGlobalLevel(GlobalLevelCalculator.fromTotalXp(profile.getTotalPoints()))
           .totalGlobalXp(profile.getTotalPoints())
           .subjects(items)
@@ -79,7 +79,7 @@ public class SubjectProgressService implements SubjectProgressUseCase {
       GamificationProfile profile = resolveProfile(userId);
       String username = resolveUsername(profile, userId);
       return SubjectProgressOverviewDTO.builder()
-          .username(username)
+          .userName(username)
           .userGlobalLevel(profile.getGlobalLevel())
           .totalGlobalXp(profile.getTotalPoints())
           .subjects(snapshots.stream().map(subjectProgressMapper::snapshotToItem).toList())
