@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(
     name = "academic-service-client",
-    url = "${clients.academic.base-url:http://localhost:8080}",
+    url = "${clients.academic.base-url:http://localhost:1502}",
     path = "/api/v1/academic",
     configuration = FeignClientConfig.class)
 public interface AcademicServiceClient {

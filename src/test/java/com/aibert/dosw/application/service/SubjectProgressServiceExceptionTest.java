@@ -10,9 +10,9 @@ import com.aibert.dosw.application.dto.request.SubjectProgressBatchRequestDTO;
 import com.aibert.dosw.application.mapper.SubjectProgressApplicationMapper;
 import com.aibert.dosw.domain.exceptions.SubjectProgressNotFoundException;
 import com.aibert.dosw.domain.exceptions.SubjectProgressLoadException;
+import com.aibert.dosw.domain.ports.out.AcademicSummaryProviderPort;
 import com.aibert.dosw.domain.ports.out.GamificationRepositoryPort;
 import com.aibert.dosw.domain.ports.out.SubjectProgressRepositoryPort;
-import com.aibert.dosw.infrastructure.feign.AcademicServiceClient;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -29,7 +29,7 @@ class SubjectProgressServiceExceptionTest {
 
   @Mock private GamificationRepositoryPort gamificationRepository;
   @Mock private SubjectProgressRepositoryPort subjectProgressRepository;
-  @Mock private AcademicServiceClient academicServiceClient;
+  @Mock private AcademicSummaryProviderPort academicSummaryProvider;
   @Spy private SubjectProgressApplicationMapper mapper = Mappers.getMapper(SubjectProgressApplicationMapper.class);
   @InjectMocks private SubjectProgressService service;
 

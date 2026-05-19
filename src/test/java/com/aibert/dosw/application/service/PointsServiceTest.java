@@ -14,6 +14,7 @@ import com.aibert.dosw.domain.model.user.ActionEvent;
 import com.aibert.dosw.domain.model.user.GamificationProfile;
 import com.aibert.dosw.domain.model.user.Level;
 import com.aibert.dosw.domain.ports.out.GamificationRepositoryPort;
+import com.aibert.dosw.infrastructure.kafka.LevelUpEventPublisher;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 class PointsServiceTest {
 
   @Mock private GamificationRepositoryPort repository;
+  @Mock private LevelUpEventPublisher levelUpEventPublisher;
   @Spy private ActivityHistoryMapper activityHistoryMapper = Mappers.getMapper(ActivityHistoryMapper.class);
   @Spy private PointsApplicationMapper pointsMapper = Mappers.getMapper(PointsApplicationMapper.class);
   @InjectMocks private PointsService pointsService;
@@ -52,6 +54,31 @@ class PointsServiceTest {
     assertEquals(15, response.getXpEarned());
     assertEquals(1, response.getCurrentStreak());
     verify(repository).save(any());
+    verify(levelUpEventPublisher, never()).publish(any(), any(), any());
+  }
+
+  @Test
+  void processAcademicEvent_crossesLevel_publishesKafkaEvent() {
+    GamificationProfile profile =
+        GamificationProfile.builder()
+            .id(UUID.randomUUID())
+            .userId(userId)
+            .username("student.points")
+            .totalPoints(40)
+            .currentStreak(0)
+            .globalLevel(Level.NOVATO)
+            .achievements(new ArrayList<>())
+            .build();
+
+    when(repository.findByUserId(userId)).thenReturn(Optional.of(profile));
+    when(repository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+    PointsResponseDTO response =
+        pointsService.processAcademicEvent(
+            userId, buildRequest(ActionEvent.TASK_COMPLETED, UUID.randomUUID()));
+
+    assertTrue(response.isPointsUpdated());
+    verify(levelUpEventPublisher).publish(userId, Level.NOVATO, Level.CONSTANTE);
   }
 
   @Test

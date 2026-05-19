@@ -9,6 +9,7 @@ import com.aibert.dosw.application.mapper.ActivityHistoryMapper;
 import com.aibert.dosw.application.mapper.PointsApplicationMapper;
 import com.aibert.dosw.domain.exceptions.PointsUpdateException;
 import com.aibert.dosw.domain.ports.out.GamificationRepositoryPort;
+import com.aibert.dosw.infrastructure.kafka.LevelUpEventPublisher;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PointsServiceExceptionTest {
 
   @Mock private GamificationRepositoryPort repository;
+  @Mock private LevelUpEventPublisher levelUpEventPublisher;
   @Spy private ActivityHistoryMapper activityHistoryMapper = Mappers.getMapper(ActivityHistoryMapper.class);
   @Spy private PointsApplicationMapper pointsMapper = Mappers.getMapper(PointsApplicationMapper.class);
   @InjectMocks private PointsService pointsService;
