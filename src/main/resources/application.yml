@@ -17,7 +17,18 @@ management:
       show-details: never
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:dev-secret}
+
+app:
+  cors:
+    allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:*}
+    allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
+    allowed-headers: ${CORS_ALLOWED_HEADERS:*}
+    allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+
+clients:
+  identity:
+    base-url: ${IDENTITY_SERVICE_URL:http://localhost:8081}
 
 ---
 spring:
@@ -26,9 +37,9 @@ spring:
       on-profile: local
 
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/gamification_db}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
 
     hikari:
@@ -37,6 +48,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
     show-sql: true
     open-in-view: false
@@ -60,6 +73,8 @@ spring:
     hibernate:
       ddl-auto: update
 
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
     show-sql: false
     open-in-view: false
 
@@ -81,6 +96,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
     show-sql: false
     open-in-view: false

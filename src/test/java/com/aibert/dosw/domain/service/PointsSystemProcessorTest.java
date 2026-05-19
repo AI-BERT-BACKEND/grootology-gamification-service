@@ -237,6 +237,32 @@ class PointsSystemProcessorTest {
     assertEquals(3, result.getCurrentStreak());
   }
 
+  @Test
+  void process_sameDay_keepsCurrentStreakWithoutIncrement() {
+    profile =
+        GamificationProfile.builder()
+            .userId(UUID.randomUUID())
+            .totalPoints(40)
+            .currentStreak(4)
+            .lastActivityDate(LocalDate.of(2026, 5, 17))
+            .globalLevel(Level.CONSTANTE)
+            .achievements(new ArrayList<>())
+            .build();
+
+    LocalDateTime completion = LocalDateTime.of(2026, 5, 17, 20, 0);
+    var result =
+        processor.process(
+            profile,
+            ActionEvent.TASK_COMPLETED,
+            completion,
+            completion.plusHours(4),
+            UUID.randomUUID(),
+            List.of(pastRecord(ActionEvent.SUBJECT_PROGRESS, completion.minusHours(2))));
+
+    assertTrue(result.isPointsUpdated());
+    assertEquals(4, result.getCurrentStreak());
+  }
+
   private UserActivityRecord pastRecord(ActionEvent event, LocalDateTime date) {
     return UserActivityRecord.builder().actionEvent(event).completionDate(date).build();
   }
