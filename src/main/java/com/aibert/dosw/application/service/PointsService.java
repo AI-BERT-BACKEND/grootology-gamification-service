@@ -12,6 +12,7 @@ import com.aibert.dosw.domain.ports.in.PointsUseCase;
 import com.aibert.dosw.domain.ports.out.GamificationRepositoryPort;
 import com.aibert.dosw.domain.service.GlobalLevelCalculator;
 import com.aibert.dosw.domain.service.PointsSystemProcessor;
+import com.aibert.dosw.infrastructure.kafka.LevelUpEventPublisher;
 import java.util.ArrayList;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class PointsService implements PointsUseCase {
   private final GamificationRepositoryPort repository;
   private final ActivityHistoryMapper activityHistoryMapper;
   private final PointsApplicationMapper pointsMapper;
+  private final LevelUpEventPublisher levelUpEventPublisher;
   private final PointsSystemProcessor pointsProcessor = new PointsSystemProcessor();
 
   @Override
@@ -47,6 +49,8 @@ public class PointsService implements PointsUseCase {
         return pointsMapper.toResponse(award);
       }
 
+      Level previousLevel = profile.getGlobalLevel() == null ? Level.NOVATO : profile.getGlobalLevel();
+      Level newLevel = GlobalLevelCalculator.fromTotalXp(award.getTotalPoints());
       GamificationProfile updated =
           GamificationProfile.builder()
               .id(profile.getId())
@@ -55,7 +59,7 @@ public class PointsService implements PointsUseCase {
               .totalPoints(award.getTotalPoints())
               .currentStreak(award.getCurrentStreak())
               .lastActivityDate(award.getLastActivityDate())
-              .globalLevel(GlobalLevelCalculator.fromTotalXp(award.getTotalPoints()))
+              .globalLevel(newLevel)
               .achievements(
                   profile.getAchievements() != null
                       ? profile.getAchievements()
@@ -63,6 +67,9 @@ public class PointsService implements PointsUseCase {
               .build();
 
       repository.save(updated);
+      if (newLevel.ordinal() > previousLevel.ordinal()) {
+        levelUpEventPublisher.publish(userId, previousLevel, newLevel);
+      }
       return pointsMapper.toResponse(award);
     } catch (PointsUpdateException ex) {
       throw ex;

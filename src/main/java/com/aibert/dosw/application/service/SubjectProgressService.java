@@ -15,11 +15,11 @@ import com.aibert.dosw.domain.model.subject.SubjectProgressSnapshot;
 import com.aibert.dosw.domain.model.user.GamificationProfile;
 import com.aibert.dosw.domain.model.user.Level;
 import com.aibert.dosw.domain.ports.in.SubjectProgressUseCase;
+import com.aibert.dosw.domain.ports.out.AcademicSummaryProviderPort;
 import com.aibert.dosw.domain.ports.out.GamificationRepositoryPort;
 import com.aibert.dosw.domain.ports.out.SubjectProgressRepositoryPort;
 import com.aibert.dosw.domain.service.GlobalLevelCalculator;
 import com.aibert.dosw.domain.service.SubjectProgressProcessor;
-import com.aibert.dosw.infrastructure.feign.AcademicServiceClient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -35,7 +35,7 @@ public class SubjectProgressService implements SubjectProgressUseCase {
   private final GamificationRepositoryPort gamificationRepository;
   private final SubjectProgressRepositoryPort subjectProgressRepository;
   private final SubjectProgressApplicationMapper subjectProgressMapper;
-  private final AcademicServiceClient academicServiceClient;
+  private final AcademicSummaryProviderPort academicSummaryProvider;
   private final SubjectProgressProcessor processor = new SubjectProgressProcessor();
 
   @Override
@@ -77,17 +77,14 @@ public class SubjectProgressService implements SubjectProgressUseCase {
     try {
       String resolvedStudentId =
           studentId == null || studentId.isBlank() ? userId.toString() : studentId;
-      var academicResponse = academicServiceClient.getAcademicSummary(resolvedStudentId);
+      var academicSummary = academicSummaryProvider.fetchAcademicSummary(resolvedStudentId);
 
-      if (academicResponse == null
-          || academicResponse.data() == null
-          || academicResponse.data().subjects() == null
-          || academicResponse.data().subjects().isEmpty()) {
+      if (academicSummary.subjects() == null || academicSummary.subjects().isEmpty()) {
         throw new NoSubjectsRegisteredException();
       }
 
       List<SubjectProgressDataDTO> subjects = new ArrayList<>();
-      for (var subject : academicResponse.data().subjects()) {
+      for (var subject : academicSummary.subjects()) {
         if (subject.subjectId() == null) {
           continue;
         }
@@ -201,7 +198,7 @@ public class SubjectProgressService implements SubjectProgressUseCase {
   }
 
   private List<CompletedTaskDTO> mapCompletedTasks(
-      List<AcademicServiceClient.EvaluationCutResponse> cuts) {
+      List<AcademicSummaryProviderPort.EvaluationCut> cuts) {
     if (cuts == null || cuts.isEmpty()) {
       return List.of();
     }

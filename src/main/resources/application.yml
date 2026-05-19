@@ -5,6 +5,17 @@ server:
 spring:
   application:
     name: gamification-service
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring:
+          json:
+            add:
+              type:
+                headers: false
 
 management:
   endpoints:
@@ -25,6 +36,9 @@ app:
     allowed-methods: ${CORS_ALLOWED_METHODS:GET,POST,PUT,DELETE,OPTIONS}
     allowed-headers: ${CORS_ALLOWED_HEADERS:*}
     allow-credentials: ${CORS_ALLOW_CREDENTIALS:true}
+  kafka:
+    topics:
+      level-up: ${KAFKA_TOPIC_LEVEL_UP:gamification.level-up}
 
 clients:
   identity:
