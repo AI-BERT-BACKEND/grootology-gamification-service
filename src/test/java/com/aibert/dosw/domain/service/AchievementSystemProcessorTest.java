@@ -162,4 +162,47 @@ class AchievementSystemProcessorTest {
     assertTrue(result.isAchievementUnlocked());
     assertEquals("Racha de Tareas", result.getUnlockedDefinition().getName());
   }
+
+  @Test
+  void process_nullEvent_rejectedAsInvalid() {
+    var result =
+        processor.process(
+            null,
+            List.of(
+                UserProgressRecord.builder()
+                    .completionDate(LocalDateTime.now())
+                    .streakDays(8)
+                    .build()),
+            LocalDateTime.now(),
+            unlocked);
+
+    assertFalse(result.isAchievementUnlocked());
+    assertTrue(result.getMessage().contains("FA-04"));
+  }
+
+  @Test
+  void recentAchievements_sortsDescAndLimitsToFive() {
+    List<UnlockedAchievement> many =
+        List.of(
+            unlockedAt(AchievementEvent.TASK_STREAK, 1),
+            unlockedAt(AchievementEvent.PERFECT_SCORE, 2),
+            unlockedAt(AchievementEvent.GOAL_COMPLETED, 3),
+            unlockedAt(AchievementEvent.SUBJECT_MASTERY, 4),
+            unlockedAt(AchievementEvent.PRODUCTIVITY_STREAK, 5),
+            unlockedAt(AchievementEvent.TASK_STREAK, 6));
+
+    var recent = processor.recentAchievements(many);
+
+    assertEquals(5, recent.size());
+    assertTrue(
+        recent.getFirst().getUnlockDate().isAfter(recent.getLast().getUnlockDate())
+            || recent.getFirst().getUnlockDate().isEqual(recent.getLast().getUnlockDate()));
+  }
+
+  private UnlockedAchievement unlockedAt(AchievementEvent event, int hoursAgo) {
+    return UnlockedAchievement.builder()
+        .event(event)
+        .unlockDate(LocalDateTime.now().minusHours(hoursAgo))
+        .build();
+  }
 }
