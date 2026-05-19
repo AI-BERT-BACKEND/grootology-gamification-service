@@ -10,6 +10,7 @@ import com.aibert.dosw.application.dto.request.SubjectProgressDataDTO;
 import com.aibert.dosw.application.dto.response.SubjectProgressOverviewDTO;
 import com.aibert.dosw.application.mapper.SubjectProgressApplicationMapper;
 import com.aibert.dosw.domain.exceptions.NoSubjectsRegisteredException;
+import com.aibert.dosw.domain.exceptions.SubjectProgressLoadException;
 import com.aibert.dosw.domain.exceptions.SubjectProgressNotFoundException;
 import com.aibert.dosw.domain.model.subject.ProgressVisualization;
 import com.aibert.dosw.domain.model.subject.SubjectProgressSnapshot;
@@ -96,6 +97,14 @@ class SubjectProgressServiceTest {
   }
 
   @Test
+  void getProgressOverview_withoutSnapshots_throwsNoSubjectsRegistered() {
+    when(subjectProgressRepository.findByUserId(userId)).thenReturn(List.of());
+
+    assertThrows(
+        NoSubjectsRegisteredException.class, () -> subjectProgressService.getProgressOverview(userId));
+  }
+
+  @Test
   void updateProgress_usesAuthenticatedPrincipalWhenProfileUsernameMissing() {
     SecurityContextHolder.getContext()
         .setAuthentication(new UsernamePasswordAuthenticationToken("student.auth", null, List.of()));
@@ -154,6 +163,171 @@ class SubjectProgressServiceTest {
     assertEquals(1, response.getSubjects().size());
     assertEquals("101", response.getSubjects().getFirst().getSubjectId());
     verify(academicServiceClient).getAcademicSummary("student-1");
+    verify(subjectProgressRepository).save(any());
+  }
+
+  @Test
+  void syncProgressFromAcademic_blankStudentId_usesUserIdAndClampsPerformanceTo100() {
+    when(gamificationRepository.findByUserId(userId)).thenReturn(Optional.empty());
+    when(subjectProgressRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(academicServiceClient.getAcademicSummary(userId.toString()))
+        .thenReturn(
+            new AcademicServiceClient.AcademicApiResponse<>(
+                true,
+                new AcademicServiceClient.AcademicSummaryResponse(
+                    userId.toString(),
+                    5.9,
+                    List.of(
+                        new AcademicServiceClient.AcademicSubjectResponse(
+                            101L,
+                            "Mathematics",
+                            "2026-1",
+                            6.0,
+                            List.of(
+                                new AcademicServiceClient.EvaluationCutResponse(
+                                    1L, "Corte 1", 50.0, 4.8))))),
+                "ok",
+                null,
+                null));
+
+    SubjectProgressOverviewDTO response =
+        subjectProgressService.syncProgressFromAcademic(userId, "   ");
+
+    verify(academicServiceClient).getAcademicSummary(userId.toString());
+    assertEquals(100f, response.getSubjects().getFirst().getAcademicPerformance());
+  }
+
+  @Test
+  void syncProgressFromAcademic_nullOverallAverage_setsAcademicPerformanceToZero() {
+    when(gamificationRepository.findByUserId(userId)).thenReturn(Optional.empty());
+    when(subjectProgressRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(academicServiceClient.getAcademicSummary("student-2"))
+        .thenReturn(
+            new AcademicServiceClient.AcademicApiResponse<>(
+                true,
+                new AcademicServiceClient.AcademicSummaryResponse(
+                    "student-2",
+                    null,
+                    List.of(
+                        new AcademicServiceClient.AcademicSubjectResponse(
+                            202L,
+                            "Physics",
+                            "2026-1",
+                            null,
+                            List.of(
+                                new AcademicServiceClient.EvaluationCutResponse(
+                                    1L, "Corte 1", 50.0, 4.0))))),
+                "ok",
+                null,
+                null));
+
+    SubjectProgressOverviewDTO response =
+        subjectProgressService.syncProgressFromAcademic(userId, "student-2");
+
+    assertEquals(0f, response.getSubjects().getFirst().getAcademicPerformance());
+  }
+
+  @Test
+  void syncProgressFromAcademic_noSubjects_throwsNoSubjectsRegistered() {
+    when(academicServiceClient.getAcademicSummary("student-empty"))
+        .thenReturn(
+            new AcademicServiceClient.AcademicApiResponse<>(
+                true,
+                new AcademicServiceClient.AcademicSummaryResponse(
+                    "student-empty", 3.5, List.of()),
+                "ok",
+                null,
+                null));
+
+    assertThrows(
+        NoSubjectsRegisteredException.class,
+        () -> subjectProgressService.syncProgressFromAcademic(userId, "student-empty"));
+  }
+
+  @Test
+  void syncProgressFromAcademic_onlyNullSubjectIds_throwsNoSubjectsRegistered() {
+    when(academicServiceClient.getAcademicSummary("student-null-subject"))
+        .thenReturn(
+            new AcademicServiceClient.AcademicApiResponse<>(
+                true,
+                new AcademicServiceClient.AcademicSummaryResponse(
+                    "student-null-subject",
+                    4.0,
+                    List.of(
+                        new AcademicServiceClient.AcademicSubjectResponse(
+                            null, "Unknown", "2026-1", 4.0, List.of()))),
+                "ok",
+                null,
+                null));
+
+    assertThrows(
+        NoSubjectsRegisteredException.class,
+        () -> subjectProgressService.syncProgressFromAcademic(userId, "student-null-subject"));
+  }
+
+  @Test
+  void syncProgressFromAcademic_runtimeFailure_wrapsAsSubjectProgressLoadException() {
+    when(academicServiceClient.getAcademicSummary("student-error"))
+        .thenThrow(new RuntimeException("feign failure"));
+
+    assertThrows(
+        SubjectProgressLoadException.class,
+        () -> subjectProgressService.syncProgressFromAcademic(userId, "student-error"));
+  }
+
+  @Test
+  void syncProgressFromAcademic_withEmptyCuts_keepsZeroTasks() {
+    when(gamificationRepository.findByUserId(userId)).thenReturn(Optional.empty());
+    when(subjectProgressRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(academicServiceClient.getAcademicSummary("student-empty-cuts"))
+        .thenReturn(
+            new AcademicServiceClient.AcademicApiResponse<>(
+                true,
+                new AcademicServiceClient.AcademicSummaryResponse(
+                    "student-empty-cuts",
+                    3.2,
+                    List.of(
+                        new AcademicServiceClient.AcademicSubjectResponse(
+                            303L, "Chemistry", "2026-1", 4.0, List.of()))),
+                "ok",
+                null,
+                null));
+
+    SubjectProgressOverviewDTO response =
+        subjectProgressService.syncProgressFromAcademic(userId, "student-empty-cuts");
+
+    assertEquals(1, response.getSubjects().size());
+    assertEquals("0/1 tasks", response.getSubjects().getFirst().getProgressVisualization().getTasksCompletedLabel());
+  }
+
+  @Test
+  void syncProgressFromAcademic_cutWithoutId_usesCutNameFallbackId() {
+    when(gamificationRepository.findByUserId(userId)).thenReturn(Optional.empty());
+    when(subjectProgressRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(academicServiceClient.getAcademicSummary("student-cut-name"))
+        .thenReturn(
+            new AcademicServiceClient.AcademicApiResponse<>(
+                true,
+                new AcademicServiceClient.AcademicSummaryResponse(
+                    "student-cut-name",
+                    4.1,
+                    List.of(
+                        new AcademicServiceClient.AcademicSubjectResponse(
+                            404L,
+                            "History",
+                            "2026-1",
+                            4.2,
+                            List.of(
+                                new AcademicServiceClient.EvaluationCutResponse(
+                                    null, "Corte Especial", 100.0, 4.0))))),
+                "ok",
+                null,
+                null));
+
+    SubjectProgressOverviewDTO response =
+        subjectProgressService.syncProgressFromAcademic(userId, "student-cut-name");
+
+    assertEquals(1, response.getSubjects().size());
     verify(subjectProgressRepository).save(any());
   }
 

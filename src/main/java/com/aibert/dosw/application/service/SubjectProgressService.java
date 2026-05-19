@@ -225,6 +225,6 @@ public class SubjectProgressService implements SubjectProgressUseCase {
       return 0f;
     }
     float normalized = (float) (overallAverage * 20.0d);
-    return Math.max(0f, Math.min(100f, normalized));
+    return Math.clamp(normalized, 0f, 100f);
   }
 }
