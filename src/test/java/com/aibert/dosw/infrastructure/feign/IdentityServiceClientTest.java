@@ -1,4 +1,4 @@
-package com.aibert.dosw.infrastructure.clients.identity;
+package com.aibert.dosw.infrastructure.feign;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

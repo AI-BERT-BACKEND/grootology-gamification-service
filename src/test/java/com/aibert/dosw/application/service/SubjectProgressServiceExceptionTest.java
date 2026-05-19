@@ -9,7 +9,7 @@ import com.aibert.dosw.application.mapper.SubjectProgressApplicationMapper;
 import com.aibert.dosw.domain.exceptions.SubjectProgressLoadException;
 import com.aibert.dosw.domain.ports.out.GamificationRepositoryPort;
 import com.aibert.dosw.domain.ports.out.SubjectProgressRepositoryPort;
-import com.aibert.dosw.infrastructure.clients.academic.AcademicServiceClient;
+import com.aibert.dosw.infrastructure.feign.AcademicServiceClient;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;

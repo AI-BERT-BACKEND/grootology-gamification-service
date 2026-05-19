@@ -1,4 +1,4 @@
-package com.aibert.dosw.infrastructure.clients.academic;
+package com.aibert.dosw.infrastructure.feign;
 
 import java.util.List;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -8,7 +8,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @FeignClient(
     name = "academic-service-client",
     url = "${clients.academic.base-url:http://localhost:8080}",
-    path = "/api/v1/academic")
+    path = "/api/v1/academic",
+    configuration = FeignClientConfig.class)
 public interface AcademicServiceClient {
 
   @GetMapping("/summary")

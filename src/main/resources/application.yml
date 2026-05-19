@@ -30,7 +30,9 @@ clients:
   identity:
     base-url: ${IDENTITY_SERVICE_URL:http://localhost:8081}
   academic:
-    base-url: ${ACADEMIC_SERVICE_URL:http://localhost:8080}
+    base-url: ${ACADEMIC_SERVICE_URL:http://localhost:1502}
+  task:
+    base-url: ${TASK_SERVICE_URL:http://localhost:1503}
 
 ---
 spring:

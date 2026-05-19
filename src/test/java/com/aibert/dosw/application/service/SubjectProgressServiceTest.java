@@ -17,7 +17,7 @@ import com.aibert.dosw.domain.model.user.GamificationProfile;
 import com.aibert.dosw.domain.model.user.Level;
 import com.aibert.dosw.domain.ports.out.GamificationRepositoryPort;
 import com.aibert.dosw.domain.ports.out.SubjectProgressRepositoryPort;
-import com.aibert.dosw.infrastructure.clients.academic.AcademicServiceClient;
+import com.aibert.dosw.infrastructure.feign.AcademicServiceClient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
