@@ -31,7 +31,7 @@ services:
     restart: unless-stopped
 
     ports:
-      - "8084:8080"
+      - "1508:1508"
 
     environment:
       DB_NAME: ${DB_NAME:-gamification}

@@ -123,7 +123,11 @@ jobs:
         run: ./mvnw jacoco:report -B --no-transfer-progress
 
       - name: Analyze with SonarCloud
-        run: ./mvnw sonar:sonar -B --no-transfer-progress -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+        run: >
+          ./mvnw sonar:sonar -B --no-transfer-progress
+          -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+          -Dsonar.junit.reportPaths=target/surefire-reports
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
