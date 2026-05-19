@@ -157,3 +157,10 @@ Content-Type: application/json
     }
   ]
 }
+
+### ------------------------------------------------------------
+### D) AIB-35 GAMIFICATION PROGRESS
+### ------------------------------------------------------------
+
+### D1. GET progress - perfil de gamificacion academica
+GET {{baseUrl}}/api/v1/gamification/{{userId}}/progress

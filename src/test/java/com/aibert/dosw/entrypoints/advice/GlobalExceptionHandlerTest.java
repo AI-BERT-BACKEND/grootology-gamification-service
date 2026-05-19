@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 
 import com.aibert.dosw.application.dto.response.ApiErrorResponseDTO;
 import com.aibert.dosw.domain.exceptions.AchievementUpdateException;
+import com.aibert.dosw.domain.exceptions.GamificationProgressLoadException;
 import com.aibert.dosw.domain.exceptions.GamificationProfileNotFoundException;
 import com.aibert.dosw.domain.exceptions.NoSubjectsRegisteredException;
 import com.aibert.dosw.domain.exceptions.PointsUpdateException;
@@ -74,6 +75,17 @@ class GlobalExceptionHandlerTest {
         handler.handleGamification(
             new SubjectProgressLoadException("Load failed", new RuntimeException()), request);
     assertEquals("GAM-502", response.getBody().getCode());
+  }
+
+  @Test
+  void handleGamificationProgressLoad_returns504() {
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getRequestURI()).thenReturn("/api/v1/gamification/1/progress");
+    ResponseEntity<ApiErrorResponseDTO> response =
+        handler.handleGamification(
+            new GamificationProgressLoadException("Progress failed", new RuntimeException()),
+            request);
+    assertEquals("GAM-504", response.getBody().getCode());
   }
 
   @Test

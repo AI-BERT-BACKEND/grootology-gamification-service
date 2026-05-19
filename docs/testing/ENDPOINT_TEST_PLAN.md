@@ -22,6 +22,7 @@ El archivo complementario `docs/testing/endpoints.http` contiene las requests li
 5. `POST /api/v1/gamification/{userId}/subjects/progress`
 6. `GET /api/v1/gamification/{userId}/subjects/progress`
 7. `GET /api/v1/gamification/{userId}/subjects/{subjectId}/progress`
+8. `GET /api/v1/gamification/{userId}/progress`
 
 ## 3) Casos por endpoint
 
@@ -67,6 +68,15 @@ El archivo complementario `docs/testing/endpoints.http` contiene las requests li
    - Esperado: `200`, item del subject.
 7. `GET /subjects/{subjectId}/progress` - subject inexistente
    - Esperado: `404`, `code=GAM-406`.
+
+### D. AIB-35 Gamification Progress
+
+1. `GET /progress` - usuario con actividad
+   - Esperado: `200`, `totalPoints`, `currentLevel`, `badges`, `progressToNext`.
+2. `GET /progress` - usuario sin actividad previa
+   - Esperado: `200`, `totalPoints=0`, `currentLevel=1`, `progressToNext=0`.
+3. `GET /progress` - error interno en carga de puntos
+   - Esperado: `500`, `code=GAM-504`.
 
 ## 4) Orden recomendado de ejecucion
 

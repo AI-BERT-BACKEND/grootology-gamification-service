@@ -34,6 +34,10 @@ public class OpenApiConfig {
                     """)
                 .contact(new Contact().name("Grootyology Team").email("support@aibert.edu")))
         .addTagsItem(new Tag().name("AIB-36 Points").description("Points and XP management"))
+        .addTagsItem(
+            new Tag()
+                .name("AIB-35 Progress")
+                .description("Academic gamification profile visualization"))
         .addTagsItem(new Tag().name("AIB-37 Achievements").description("Achievements and badges"))
         .addTagsItem(
             new Tag().name("AIB-38 Subject Progress").description("Per-subject academic progress"))

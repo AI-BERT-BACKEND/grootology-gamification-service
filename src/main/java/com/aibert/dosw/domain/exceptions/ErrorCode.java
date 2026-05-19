@@ -14,7 +14,9 @@ public enum ErrorCode {
   ACHIEVEMENT_UPDATE_FAILED("GAM-501", HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update student achievements"),
   SUBJECT_PROGRESS_LOAD_FAILED(
       "GAM-502", HttpStatus.INTERNAL_SERVER_ERROR, "Failed to load subject progress indicators"),
-  INTERNAL_ERROR("GAM-503", HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected internal error");
+  INTERNAL_ERROR("GAM-503", HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected internal error"),
+  GAMIFICATION_PROGRESS_LOAD_FAILED(
+      "GAM-504", HttpStatus.INTERNAL_SERVER_ERROR, "Failed to load gamification progress");
 
   private final String code;
   private final HttpStatus httpStatus;
