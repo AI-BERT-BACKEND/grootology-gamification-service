@@ -9,6 +9,8 @@ import java.util.UUID;
 public interface SubjectProgressUseCase {
   SubjectProgressOverviewDTO updateProgress(UUID userId, SubjectProgressBatchRequestDTO request);
 
+  SubjectProgressOverviewDTO syncProgressFromAcademic(UUID userId, String studentId);
+
   SubjectProgressOverviewDTO getProgressOverview(UUID userId);
 
   SubjectProgressItemDTO getSubjectProgress(UUID userId, String subjectId);

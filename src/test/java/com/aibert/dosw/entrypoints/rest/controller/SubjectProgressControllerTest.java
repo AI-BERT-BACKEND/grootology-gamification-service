@@ -109,4 +109,24 @@ class SubjectProgressControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.subjectId").value("math-101"));
   }
+
+  @Test
+  void syncProgressFromAcademic_returns200() throws Exception {
+    UUID userId = UUID.randomUUID();
+    when(subjectProgressUseCase.syncProgressFromAcademic(userId, "student-1"))
+        .thenReturn(
+            SubjectProgressOverviewDTO.builder()
+                .userName("student.controller")
+                .userGlobalLevel(Level.NOVATO)
+                .totalGlobalXp(0)
+                .subjects(List.of())
+                .build());
+
+    mockMvc
+        .perform(
+            post("/api/v1/gamification/{userId}/subjects/progress/sync", userId)
+                .header("X-Student-Id", "student-1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.userName").value("student.controller"));
+  }
 }

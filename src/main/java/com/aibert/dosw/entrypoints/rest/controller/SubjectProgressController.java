@@ -59,6 +59,31 @@ public class SubjectProgressController {
   }
 
   @Operation(
+      summary = "Sync progress from academic service",
+      description =
+          "Fetches the student academic summary from academic-service and recalculates subject progress snapshots.")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Progress synchronized from academic service",
+        content = @Content(schema = @Schema(implementation = SubjectProgressOverviewDTO.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "No subjects provided by academic service (FA-01)",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponseDTO.class))),
+    @ApiResponse(
+        responseCode = "500",
+        description = "Progress load failed (FA-03)",
+        content = @Content(schema = @Schema(implementation = ApiErrorResponseDTO.class)))
+  })
+  @PostMapping(value = "/progress/sync", produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<SubjectProgressOverviewDTO> syncProgressFromAcademic(
+      @PathVariable UUID userId,
+      @RequestHeader(value = "X-Student-Id", required = false) String studentId) {
+    return ResponseEntity.ok(subjectProgressUseCase.syncProgressFromAcademic(userId, studentId));
+  }
+
+  @Operation(
       summary = "Get all subjects progress",
       description =
           "Returns progress overview for every registered subject plus the student global level.")

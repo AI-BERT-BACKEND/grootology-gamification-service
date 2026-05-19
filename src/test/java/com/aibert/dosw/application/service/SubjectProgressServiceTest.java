@@ -17,6 +17,7 @@ import com.aibert.dosw.domain.model.user.GamificationProfile;
 import com.aibert.dosw.domain.model.user.Level;
 import com.aibert.dosw.domain.ports.out.GamificationRepositoryPort;
 import com.aibert.dosw.domain.ports.out.SubjectProgressRepositoryPort;
+import com.aibert.dosw.infrastructure.clients.academic.AcademicServiceClient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +37,7 @@ class SubjectProgressServiceTest {
 
   @Mock private GamificationRepositoryPort gamificationRepository;
   @Mock private SubjectProgressRepositoryPort subjectProgressRepository;
+  @Mock private AcademicServiceClient academicServiceClient;
   @Spy private SubjectProgressApplicationMapper subjectProgressMapper =
       Mappers.getMapper(SubjectProgressApplicationMapper.class);
   @InjectMocks private SubjectProgressService subjectProgressService;
@@ -118,6 +120,41 @@ class SubjectProgressServiceTest {
 
     assertEquals("math-101", item.getSubjectId());
     assertEquals("Mathematics", item.getSubjectName());
+  }
+
+  @Test
+  void syncProgressFromAcademic_usesAcademicSummaryData() {
+    when(gamificationRepository.findByUserId(userId)).thenReturn(Optional.empty());
+    when(subjectProgressRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    when(academicServiceClient.getAcademicSummary("student-1"))
+        .thenReturn(
+            new AcademicServiceClient.AcademicApiResponse<>(
+                true,
+                new AcademicServiceClient.AcademicSummaryResponse(
+                    "student-1",
+                    4.3,
+                    List.of(
+                        new AcademicServiceClient.AcademicSubjectResponse(
+                            101L,
+                            "Mathematics",
+                            "2026-1",
+                            4.5,
+                            List.of(
+                                new AcademicServiceClient.EvaluationCutResponse(
+                                    1L, "Corte 1", 50.0, 4.2),
+                                new AcademicServiceClient.EvaluationCutResponse(
+                                    2L, "Corte 2", 50.0, null))))),
+                "ok",
+                null,
+                null));
+
+    SubjectProgressOverviewDTO response =
+        subjectProgressService.syncProgressFromAcademic(userId, "student-1");
+
+    assertEquals(1, response.getSubjects().size());
+    assertEquals("101", response.getSubjects().getFirst().getSubjectId());
+    verify(academicServiceClient).getAcademicSummary("student-1");
+    verify(subjectProgressRepository).save(any());
   }
 
   private SubjectProgressSnapshot sampleSnapshot() {
