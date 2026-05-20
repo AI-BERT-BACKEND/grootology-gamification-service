@@ -14,7 +14,7 @@ class TaskServiceClientTest {
 
     assertNotNull(annotation);
     assertEquals("task-service-client", annotation.name());
-    assertEquals("${clients.task.base-url:http://localhost:8082}", annotation.url());
-    assertEquals("/api/v1/tasks", annotation.path());
+    assertEquals("${clients.task.base-url:http://localhost:1503}", annotation.url());
+    assertEquals("/api/tasks", annotation.path());
   }
 }
