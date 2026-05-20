@@ -42,7 +42,7 @@ app:
 
 clients:
   identity:
-    base-url: ${IDENTITY_SERVICE_URL:http://localhost:8081}
+    base-url: ${IDENTITY_SERVICE_URL:http://localhost:1500}
   academic:
     base-url: ${ACADEMIC_SERVICE_URL:http://localhost:1502}
   task:
