@@ -16,7 +16,6 @@ import com.aibert.dosw.infrastructure.adapters.persistence.entity.UnlockedAchiev
 import com.aibert.dosw.infrastructure.feign.IdentityServiceClient;
 import com.aibert.dosw.infrastructure.feign.TaskServiceClient;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -125,15 +124,24 @@ class LowCoverageModelsTest {
 
     TaskServiceClient.TaskSummaryResponse summary =
         new TaskServiceClient.TaskSummaryResponse(
-            id, "Task 1", "DONE", 20, now.minusHours(1), now.plusHours(1));
-    TaskServiceClient.TaskListResponse list = new TaskServiceClient.TaskListResponse(List.of(summary));
-    TaskServiceClient.TaskApiResponse<TaskServiceClient.TaskListResponse> response =
-        new TaskServiceClient.TaskApiResponse<>(true, list, "ok", null, 200);
+            "task-1",
+            id.toString(),
+            "subject-1",
+            "Task 1",
+            "Description",
+            "HOMEWORK",
+            45,
+            now.plusHours(1),
+            "HIGH",
+            "COMPLETED",
+            now.minusHours(2),
+            now.minusHours(1),
+            now);
 
-    assertEquals(id, summary.taskId());
-    assertEquals("DONE", summary.status());
-    assertEquals(1, response.data().tasks().size());
-    assertTrue(response.success());
-    assertNotNull(response.data());
+    assertEquals("task-1", summary.id());
+    assertEquals(id.toString(), summary.studentId());
+    assertEquals("COMPLETED", summary.status());
+    assertNotNull(summary.completedAt());
+    assertNotNull(summary.changedAt());
   }
 }

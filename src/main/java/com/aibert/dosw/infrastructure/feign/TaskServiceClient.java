@@ -2,35 +2,34 @@ package com.aibert.dosw.infrastructure.feign;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 @FeignClient(
     name = "task-service-client",
-    url = "${clients.task.base-url:http://localhost:8082}",
-    path = "/api/v1/tasks",
+    url = "${clients.task.base-url:http://localhost:1503}",
+    path = "/api/tasks",
     configuration = FeignClientConfig.class)
 public interface TaskServiceClient {
 
-  @GetMapping("/users/{userId}")
-  TaskApiResponse<TaskListResponse> getTasksByUser(
-      @PathVariable UUID userId, @RequestParam(required = false) String status);
-
-  @GetMapping("/users/{userId}/completed")
-  TaskApiResponse<TaskListResponse> getCompletedTasksByUser(@PathVariable UUID userId);
-
-  record TaskApiResponse<T>(boolean success, T data, String message, String error, Integer code) {}
-
-  record TaskListResponse(List<TaskSummaryResponse> tasks) {}
+  @GetMapping("/student/{studentId}")
+  List<TaskSummaryResponse> getTasksByStudent(
+      @RequestHeader("X-User-Id") String requesterUserId, @PathVariable String studentId);
 
   record TaskSummaryResponse(
-      UUID taskId,
+      String id,
+      String studentId,
+      String subjectId,
       String title,
+      String description,
+      String taskType,
+      Integer estimatedDurationMinutes,
+      LocalDateTime deadline,
+      String priority,
       String status,
-      Integer xpValue,
+      LocalDateTime scheduledDate,
       LocalDateTime completedAt,
-      LocalDateTime dueDate) {}
+      LocalDateTime changedAt) {}
 }
